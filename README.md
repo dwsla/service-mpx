@@ -1,8 +1,9 @@
 
-MPX Service
+=======
+service-mpx
 ===========
 
-A PHP 5.3 library to access MPX services
+A PHP 5.3 library to access MPX services from [The Platform](http://mpx.theplatform.com/) 
 
 Requirements
 ============
