@@ -1,6 +1,13 @@
 {
     "name" : "dwsla/service-mpx",
     "description" : "A PHP 5.3 library for accessing MPX services from ThePlatform (mpx.theplatform.com)",
+    "type" : "library",
+    "keywords" : [
+        "The Platform",
+        "MPX",
+        "PHP"
+    ],
+    "homepage" : "http://dws.la/",
     "authors" : [
         {
             "name" : "David Weinraub",
