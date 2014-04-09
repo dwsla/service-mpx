@@ -1,0 +1,33 @@
+{
+    "name" : "dwsla/service-mpx",
+    "description" : "A PHP 5.3 library for accessing MPX services from ThePlatform (mpx.theplatform.com)",
+    "authors" : [
+        {
+            "name" : "David Weinraub",
+            "email" : "david.weiinraub@dws.la"
+        }
+    ],
+    "license" : "MIT",
+    
+    "minimum-stability": "dev",
+    
+    "require": {
+        "php": ">=5.3.0",
+        "monolog/monolog": "~1.2",
+        "guzzle/guzzle": "~3.7"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~3.7"
+    },
+    
+    "autoload": {
+        "psr-0": {
+            "Dwsla\\Service\\Mpx": "src",
+            "DwslaTest\\Service\\Mpx": "tests/src"
+        }
+    },
+    
+    "config": {
+        "bin-dir": "bin"
+    }
+}

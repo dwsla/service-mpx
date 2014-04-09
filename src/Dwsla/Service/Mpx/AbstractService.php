@@ -1,0 +1,300 @@
+<?php
+
+namespace Dwsla\Service\Mpx;
+
+use Guzzle\Http\Client;
+use Monolog\Logger;
+
+/**
+ * Abstract base service for MPX services
+ *
+ * @author David Weinraub <david.weinraub@dws.la>
+ */
+abstract class AbstractService
+{
+
+    /**
+     * A log object
+     *
+     * @var Logger
+     */
+    protected $logger;
+
+    /**
+     * @var Client
+     */
+    protected $client;
+
+    /**
+     * Default format for API requests
+     *
+     * @var string
+     */
+    protected static $defaultFormat = 'json';
+
+    /**
+     * Format for API requests (instance)
+     *
+     * @var string
+     */
+    protected $format;
+
+    /**
+     * Default schema version for API requests
+     *
+     * @var string
+     */
+    protected static $defaultSchema = '1.0.0';
+
+    /**
+     * Schema for API requests (instance)
+     *
+     * @var string
+     */
+    protected $schema;
+
+    /**
+     * Base url for API requests
+     *
+     * @var string
+     */
+    protected static $baseUrl = '';
+
+    /**
+     * Make an HTTP GET request
+     *
+     * @param  string $relativeEndpoint
+     * @param  array  $headers
+     * @param  array  $params
+     * @return array
+     */
+    protected function doGet($relativeEndpoint, $headers = array(), $params = array())
+    {
+        $client = $this->getClient();
+        $request = $client->get($relativeEndpoint, $headers, $params);
+        $this->log(sprintf('Request url: %s', $request->getUrl()));
+        $response = $request->send();
+        $data = $response->json();
+
+        return $data;
+    }
+
+    /**
+     * Make an HTTP POST request
+     *
+     * @param  string $relativeEndpoint
+     * @param  array  $headers
+     * @param  array  $params
+     * @return array
+     */
+    protected function doPost($relativeEndpoint, $headers = array(), $body = '', $params = array())
+    {
+        $client = $this->getClient();
+        $request = $client->post($relativeEndpoint, $headers, $body, $params);
+        $this->log(sprintf('Request url: %s', $request->getUrl()));
+        $response = $request->send();
+        $data = $response->json();
+
+        return $data;
+    }
+
+    /**
+     * Get the client
+     *
+     * @return Client
+     */
+    public function getClient()
+    {
+        if (null === $this->client) {
+
+            $client = new Client();
+            $client->setBaseUrl(static::$baseUrl);
+            $client->setUserAgent('DWSLA-MPX/1.0');
+            $client->setDefaultOption('query/form', $this->getFormat());
+            $client->setDefaultOption('query/schema', $this->getSchema());
+            $this->client = $client;
+        }
+
+        return $this->client;
+    }
+
+    /**
+     * Set client for this service
+     *
+     * @param  \Guzzle\Http\Client $client
+     * @return type
+     */
+    public function setClient(Client $client)
+    {
+        $this->client = $client;
+
+        return $this;
+    }
+
+    /**
+     * Set default format for API requests
+     *
+     * @param  string $format json, xml, etc.
+     * @return void
+     */
+    public static function setDefaultFormat($format)
+    {
+        static::$defaultFormat = $format;
+    }
+
+    /**
+     * Get default format for API requests
+     *
+     * @return string
+     */
+    public static function getDefaultFormat()
+    {
+        return static::$defaultFormat;
+    }
+
+    /**
+     * Set default schema version for API requests
+     *
+     * @param  string $schema
+     * @return void
+     */
+    public static function setDefaultSchema($schema)
+    {
+        static::$defaultSchema = $schema;
+    }
+
+    /**
+     * Get the default schema for version API requests
+     *
+     * @return string
+     */
+    public static function getDefaultSchema()
+    {
+        return static::$defaultSchema;
+    }
+
+    /**
+     * Get schema version for API requests
+     *
+     * @return string
+     */
+    public function getSchema()
+    {
+        if (null === $this->schema) {
+            $this->schema = static::getDefaultSchema();
+        }
+
+        return $this->schema;
+    }
+
+    /**
+     * Set schema version for API requests
+     *
+     * @param  string $schema
+     * @return type
+     */
+    public function setSchema($schema)
+    {
+        $this->schema = $schema;
+
+        return $this;
+    }
+
+    /**
+     * Get format for API requests
+     *
+     * @return string
+     */
+    public function getFormat()
+    {
+        if (null === $this->format) {
+            $this->format = static::getDefaultFormat();
+        }
+
+        return $this->format;
+    }
+
+    /**
+     * Set format for API requests
+     *
+     * @param  string $format json, xml, etc.
+     * @return type
+     */
+    public function setFormat($format)
+    {
+        $this->format = $format;
+
+        return $this;
+    }
+
+    public function buildRequestUrl($relativeEndpoint, array $params = array())
+    {
+        // assume GET
+        return $this->getClient()->get($relativeEndpoint, array(), $params)->getUrl();
+    }
+
+    /**
+     * Get the logger
+     *
+     * @return Logger
+     */
+    public function getLogger()
+    {
+        return $this->logger;
+    }
+
+    /**
+     * Set the logger
+     */
+    public function setLogger(Logger $logger)
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
+    /**
+     * Log a message
+     *
+     * @param  string $message
+     * @param  int    $level
+     * @return void
+     */
+    public function log($message, $level = Logger::INFO, array $context = array())
+    {
+        if (!$this->logger) {
+            return;
+        }
+
+        if (null === $level) {
+            $level = Logger::INFO;
+        }
+
+        switch ($level) {
+            case Logger::DEBUG:
+                $this->logger->addDebug($message, $context);
+                break;
+            case Logger::INFO:
+                $this->logger->addInfo($message, $context);
+                break;
+            case Logger::NOTICE:
+                $this->logger->addNotice($message, $context);
+                break;
+            case Logger::WARNING:
+                $this->logger->addWarning($message, $context);
+                break;
+            case Logger::ERROR:
+                $this->logger->addError($message, $context);
+                break;
+            case Logger::CRITICAL:
+                $this->logger->addCritical($message, $context);
+                break;
+            case Logger::EMERGENCY:
+                $this->logger->addEmergency($message, $context);
+                break;
+            default;
+                break;
+        }
+    }
+
+}

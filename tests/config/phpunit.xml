@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<phpunit 
+    bootstrap="./../bootstrap.php"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    stopOnFailure="false"
+    processIsolation="false"
+    verbose="true"
+    backupGlobals="false"
+    backupStaticAttributes="false"
+>
+
+    <testsuites>
+
+        <testsuite name="dwsla/service-mpx test suite">
+            <directory>./../src</directory>
+        </testsuite>
+
+    </testsuites>
+</phpunit>

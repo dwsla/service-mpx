@@ -1,0 +1,9 @@
+# Note the presence of leading slashes to lock the ignore to the root
+# of the project. See: `man gitignore` under "PATTERN FORMAT"
+
+# Ignore /bin/phpunit since it is added by composer when importing phpunit
+/bin/phpunit
+
+# Ignore all composer-managed dependencies
+/vendor
+
