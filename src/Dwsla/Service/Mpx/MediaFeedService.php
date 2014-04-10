@@ -51,12 +51,12 @@ class MediaFeedService extends AbstractService
      * @return int              the number of entries in the feed
      * @throws ServiceException
      */
-    public function getCount()
+    public function getCount($addlQueryParams = array())
     {
-        $queryParams = array(
+        $queryParams = array_merge(array(
             'count' => 'true',
             'entries' => 'false',
-        );
+        ), $addlQueryParams);
         $data = $this->doGet('', array(), array(
             'query' => $queryParams,
         ));
@@ -69,6 +69,16 @@ class MediaFeedService extends AbstractService
         }
 
         return $data['totalResults'];
+    }
+    
+    public function getCountSince($since)
+    {
+        $addlQueryParams = array();
+        if ($since) {
+            $unixtimeSince = strtotime($since) * 1000;
+            $addlQueryParams['byUpdated'] = $unixtimeSince . '~';
+        }
+        return $this->getCount($addlQueryParams);
     }
 
     /**
