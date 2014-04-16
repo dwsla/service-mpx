@@ -88,9 +88,12 @@ class MediaFeedService extends AbstractService
      * @param  int   $numEntries
      * @return array the 'entries' portion of the return payload
      */
-    public function getEntries($start = 1, $numEntries = null, array $fields = array())
+    public function getEntries($start = 1, $numEntries = null, array $fields = array(), $since = null)
     {
-        $params = $this->buildGetEntriesParamsArray($start, $numEntries);
+        
+        $params = $this->buildGetEntriesParamsArray($start, $numEntries, $since);
+        
+        
         if (count($fields) > 0) {
             $params['query']['fields'] = implode(',', $fields);
         }
@@ -134,9 +137,9 @@ class MediaFeedService extends AbstractService
         return $this->client;
     }
 
-    public function buildUrlGetEntries($start = 1, $numEntries = null, array $fields = array())
+    public function buildUrlGetEntries($start = 1, $numEntries = null, array $fields = array(), $since = null)
     {
-        $params = $this->buildGetEntriesParamsArray($start, $numEntries);
+        $params = $this->buildGetEntriesParamsArray($start, $numEntries, $since);
         if (count($fields) > 0) {
             $params['query']['fields'] = implode(',', $fields);
         }
@@ -158,14 +161,17 @@ class MediaFeedService extends AbstractService
         return $range;
     }
 
-    protected function buildGetEntriesParamsArray($start = 1, $numEntries = null)
+    protected function buildGetEntriesParamsArray($start = 1, $numEntries = null, $since = null)
     {
         $params = array();
         $range = $this->buildRangeParam($start, $numEntries);
         if ($range) {
             $params['query']['range'] = $range;
         }
-
+        if ($since) {         
+            $microtimeSince = strtotime($since) * 1000;
+            $params['query']['byUpdated'] = $microtimeSince . '~';
+        }        
         return $params;
     }
 
