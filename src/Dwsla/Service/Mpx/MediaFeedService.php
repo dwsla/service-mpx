@@ -75,7 +75,7 @@ class MediaFeedService extends AbstractService
     {
         $addlQueryParams = array();
         if ($since) {
-            $unixtimeSince = strtotime($since) * 1000;
+            $unixtimeSince = $since * 1000;
             $addlQueryParams['byUpdated'] = $unixtimeSince . '~';
         }
         return $this->getCount($addlQueryParams);
@@ -168,8 +168,8 @@ class MediaFeedService extends AbstractService
         if ($range) {
             $params['query']['range'] = $range;
         }
-        if ($since) {         
-            $microtimeSince = strtotime($since) * 1000;
+        if ($since) {
+            $microtimeSince = $since * 1000;
             $params['query']['byUpdated'] = $microtimeSince . '~';
         }        
         return $params;
