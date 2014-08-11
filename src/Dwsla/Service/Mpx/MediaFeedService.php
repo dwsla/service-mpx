@@ -75,8 +75,10 @@ class MediaFeedService extends AbstractService
     {
         $addlQueryParams = array();
         if ($since) {
-            $unixtimeSince = $since * 1000;
-            $addlQueryParams['byUpdated'] = $unixtimeSince . '~';
+            // MPX docs claim to support ISO8601, but they throw exceptions on 
+            // that format. What they really want is ATOM.
+            $atomSince = gmdate(DATE_ATOM, $since);
+            $addlQueryParams['byUpdated'] = $atomSince . '~';
         }
         return $this->getCount($addlQueryParams);
     }
@@ -169,8 +171,10 @@ class MediaFeedService extends AbstractService
             $params['query']['range'] = $range;
         }
         if ($since) {
-            $microtimeSince = $since * 1000;
-            $params['query']['byUpdated'] = $microtimeSince . '~';
+            // MPX docs claim to support ISO8601, but they throw exceptions on 
+            // that format. What they really want is ATOM.
+            $atomSince = gmdate(DATE_ATOM, $since);
+            $params['query']['byUpdated'] = $atomSince . '~';
         }        
         return $params;
     }
