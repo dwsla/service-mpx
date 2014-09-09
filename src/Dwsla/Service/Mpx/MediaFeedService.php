@@ -115,6 +115,35 @@ class MediaFeedService extends AbstractService
 
         return $data['entries'];
     }
+    
+    /**
+     * Get a single entry from the feed, by id
+     * 
+     * @param integer $id
+     * @param array $fields
+     * @return array 
+     * @throws \RuntimeException
+     */
+    public function getSingleEntry($id, $fields = [])
+    {
+        $params = [];
+        $params['query']['byId'] = $id;
+        if ($fields) {
+            $params['query']['fields'] = $fields;
+        }
+        $data = $this->doGet('', [], $params);
+        if (!isset($data['entries'])) {
+            throw new \RuntimeException('No entries. Context = ' . json_encode(array(
+                'service'       => 'MediaFeed',
+                'acctId'        => $this->accountPid,
+                'feedPid'       => $this->feedPid,
+                'data'          => $data,
+                'params'        => $params,
+                'fields'        => $fields,
+            )));
+        }
+        return !empty($data['entries'][0]) ? $data['entries'][0] : null;
+    }
 
     /**
      * Get the client
@@ -145,11 +174,32 @@ class MediaFeedService extends AbstractService
         if (count($fields) > 0) {
             $params['query']['fields'] = implode(',', $fields);
         }
-        $request = $this->getClient()->get('', array(), $params);
+        $request = $this->getClient()->get('', [], $params);
 
         return $request->getUrl();
     }
 
+    /**
+     * Build the url for a single video request from a feed
+     * 
+     * @param string$acctPid
+     * @param string $feedPid
+     * @param string $videoId
+     * @param array $params
+     * @return string
+     */
+    public function buildUrlGetSingleEntry($videoId, $fields = [])
+    {
+        $params = [];
+        $params['query']['byId'] = $videoId;
+        if (count($fields) > 0) {
+            $params['query']['fields'] = implode(',', $fields);
+        }
+        $request = $this->getClient()->get('', [], $params);
+        
+        return $request->getUrl();
+    }
+    
     protected function buildRangeParam($start = 1, $numEntries = null)
     {
         if (!$numEntries) {
@@ -179,6 +229,14 @@ class MediaFeedService extends AbstractService
         return $params;
     }
 
+    /**
+     * Build the url for a feed request
+     * 
+     * @param string $acctPid
+     * @param string $feedPid
+     * @param arry $params
+     * @return string
+     */
     public static function buildFeedUrl($acctPid, $feedPid, $params = array())
     {
         return implode('/', array(
@@ -186,5 +244,5 @@ class MediaFeedService extends AbstractService
             $acctPid,
             $feedPid,
         )) . '?' . http_build_query($params);
-    }
+    }    
 }

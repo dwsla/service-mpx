@@ -14,6 +14,20 @@ abstract class AbstractService
 {
 
     /**
+     * User agent
+     * 
+     * @var string
+     */
+    protected static $userAgent = 'dwsla-mpx';
+    
+    /**
+     * Version
+     * 
+     * @var string
+     */
+    protected static $version = '2.1.0';
+    
+    /**
      * A log object
      *
      * @var Logger
@@ -21,6 +35,8 @@ abstract class AbstractService
     protected $logger;
 
     /**
+     * HTTP client
+     * 
      * @var Client
      */
     protected $client;
@@ -106,15 +122,13 @@ abstract class AbstractService
     public function getClient()
     {
         if (null === $this->client) {
-
             $client = new Client();
             $client->setBaseUrl(static::$baseUrl);
-            $client->setUserAgent('DWSLA-MPX/1.0');
+            $client->setUserAgent(sprintf('%s/%s', static::$userAgent, static::$version), true);
             $client->setDefaultOption('query/form', $this->getFormat());
             $client->setDefaultOption('query/schema', $this->getSchema());
             $this->client = $client;
         }
-
         return $this->client;
     }
 
@@ -296,5 +310,24 @@ abstract class AbstractService
                 break;
         }
     }
-
+    
+    /**
+     * Attempt to proxy log* calls to the logger
+     * 
+     * @param string $name
+     * @param array $arguments
+     * @return mixed
+     * @throws \RuntimeException
+     */
+    public function __call($name, $arguments)
+    {
+        if (substr($name, 0, 3) == 'log'
+                && $this->logger
+                && method_exists($this->logger, $name)
+        ) {
+            return call_user_func_array([$this->logger, $name], $arguments);
+        }
+        throw new \RuntimeException('Unknown method: ' . $name);
+    }
+    
 }
