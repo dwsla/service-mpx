@@ -89,7 +89,7 @@ class MediaService extends AbstractService
      * 
      * Implementation leakage. 
      * 
-     * Even though the putPlralJson() method above enables httpErrors, it is 
+     * Even though the putPluralJson() method above enables httpErrors, it is 
      * actually more robust to check the response body, as we do below.
      * 
      * @param Response $response
