@@ -130,6 +130,7 @@ abstract class AbstractService
             $client->setUserAgent(sprintf('%s/%s', static::$userAgent, static::$version), true);
             $client->setDefaultOption('query/form', $this->getFormat());
             $client->setDefaultOption('query/schema', $this->getSchema());
+            $client->setDefaultOption('timeout', 0);
             $this->client = $client;
         }
         return $this->client;
