@@ -117,6 +117,30 @@ class MediaFeedService extends AbstractService
     }
     
     /**
+     * Get entries for a generic request
+     *
+     * @param  array $options
+     * @return array the 'entries' portion of the return payload
+     */
+    public function getEntriesGeneric(array $options = [])
+    {
+        
+        $params['query'] = $options;
+        $data = $this->doGet('', array(), $params);
+        if (!isset($data['entries'])) {
+            throw new \RuntimeException('No entries. Context = ' . json_encode(array(
+                'service'       => 'MediaFeed',
+                'acctId'        => $this->accountPid,
+                'feedPid'       => $this->feedPid,
+                'data'          => $data,
+                'options'       => $options,
+            )));
+        }
+
+        return $data['entries'];
+    }
+    
+    /**
      * Get a single entry from the feed, by id
      * 
      * @param integer $id
