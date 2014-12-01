@@ -90,6 +90,9 @@ abstract class AbstractService
         $request = $client->get($relativeEndpoint, $headers, $params);
         $this->log(sprintf('Request url: %s', $request->getUrl()));
         $response = $request->send();
+        if (!$response->isSuccessful()) {
+            throw new Exception('HTTP status ' . $response->getStatusCode());
+        }
         $data = $response->json();
 
         return $data;
