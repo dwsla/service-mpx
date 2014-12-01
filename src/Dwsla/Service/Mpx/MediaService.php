@@ -74,6 +74,11 @@ class MediaService extends AbstractService
         $headers['Accept'] = 'application/json';
         
         $options = array();
+        
+        // For Content-Type application/json, MPX will suppress httpErrors, always returning 
+        // 200, by default. To re-enable HTTP errors, use ?httpError=true
+        // @see http://help.theplatform.com/display/wsf2/Handling+data-service+exceptions#Handlingdata-serviceexceptions-SuppressingHTTPerrorcodes
+        $options['query']['httpError'] = 'true';
         $options['query']['token'] = $this->token;
         $options['query'] = array_merge($options['query'], $urlParams); 
         return $this->doPut('', $headers, json_encode($body), $options);
@@ -83,6 +88,9 @@ class MediaService extends AbstractService
      * Utility function to check a Guzzle response from MPX Media API. 
      * 
      * Implementation leakage. 
+     * 
+     * Even though the putPlralJson() method above enables httpErrors, it is 
+     * actually more robust to check the response body, as we do below.
      * 
      * @param Response $response
      * @return boolean
