@@ -268,5 +268,31 @@ class MediaFeedService extends AbstractService
             $acctPid,
             $feedPid,
         )) . '?' . http_build_query($params);
-    }    
+    }
+    
+    /**
+     * Given an array of key-value pairs, construct a value usable in the ?byCustomValue query.
+     * 
+     * Example: Given the array:
+     * 
+     * $params = [
+     *     'k1' => 'v1',
+     *     'k2' => 'v2',
+     * ];
+     * 
+     * the byCustomValue query value would be:
+     * 
+     *     {k1}{v1},{k2},{v2}
+     * 
+     * @param array $params
+     */
+    public static function buildCustomValue($params, $prefix = '')
+    {
+        $out = array();
+        foreach ($params as $field => $value) {
+            $newField = sprintf($field, $prefix);
+            $out[] = sprintf('{%s}{%s}', $newField, $value);
+        }
+        return implode(',', $out);
+    }
 }
