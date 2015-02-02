@@ -36,8 +36,8 @@ class MediaFeedService extends AbstractService
     /**
      * Constructor
      *
-     * @param string $account
-     * @param string $pid
+     * @param string $accountPid
+     * @param string $feedPid
      */
     public function __construct($accountPid, $feedPid)
     {
@@ -71,9 +71,8 @@ class MediaFeedService extends AbstractService
         return $data['totalResults'];
     }
     
-    public function getCountSince($since)
+    public function getCountSince($since, $addlQueryParams = [])
     {
-        $addlQueryParams = array();
         if ($since) {
             // MPX docs claim to support ISO8601, but they throw exceptions on 
             // that format. What they really want is ATOM.
@@ -224,7 +223,7 @@ class MediaFeedService extends AbstractService
         return $request->getUrl();
     }
     
-    protected function buildRangeParam($start = 1, $numEntries = null)
+    public static function buildRangeParam($start = 1, $numEntries = null)
     {
         if (!$numEntries) {
             $start = null;
@@ -240,17 +239,26 @@ class MediaFeedService extends AbstractService
     protected function buildGetEntriesParamsArray($start = 1, $numEntries = null, $since = null)
     {
         $params = array();
-        $range = $this->buildRangeParam($start, $numEntries);
+        $range = self::buildRangeParam($start, $numEntries);
         if ($range) {
             $params['query']['range'] = $range;
         }
         if ($since) {
-            // MPX docs claim to support ISO8601, but they throw exceptions on 
-            // that format. What they really want is ATOM.
-            $atomSince = gmdate(DATE_ATOM, $since);
-            $params['query']['byUpdated'] = $atomSince . '~';
+            $params['query']['byUpdated'] = self::buildByUpdatedParamsFromSince($since);
         }        
         return $params;
+    }
+    
+    /**
+     * Build byUpdated param using $since unixtime
+     * 
+     * @param int $since
+     */
+    public static function buildByUpdatedParamsFromSince($since)
+    {
+        // MPX docs claim to support ISO8601, but they throw exceptions on 
+        // that format. What they really want is ATOM.
+        return gmdate(DATE_ATOM, $since) . '~';
     }
 
     /**
