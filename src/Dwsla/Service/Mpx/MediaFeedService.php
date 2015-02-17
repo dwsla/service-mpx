@@ -74,10 +74,7 @@ class MediaFeedService extends AbstractService
     public function getCountSince($since, $addlQueryParams = [])
     {
         if ($since) {
-            // MPX docs claim to support ISO8601, but they throw exceptions on 
-            // that format. What they really want is ATOM.
-            $atomSince = gmdate(DATE_ATOM, $since);
-            $addlQueryParams['byUpdated'] = $atomSince . '~';
+            $addlQueryParams['byUpdated'] = self::buildByUpdatedParamsFromSince($since);
         }
         return $this->getCount($addlQueryParams);
     }
@@ -146,6 +143,8 @@ class MediaFeedService extends AbstractService
      * @param array $fields
      * @return array 
      * @throws \RuntimeException
+     * 
+     * @return array|null
      */
     public function getSingleEntry($id, $fields = [])
     {
@@ -228,7 +227,6 @@ class MediaFeedService extends AbstractService
         if (!$numEntries) {
             $start = null;
         }
-        $params = array();
         $range = ($start && $numEntries)
             ? sprintf('%s-%s', $start, $start + $numEntries - 1)
             : null;
@@ -236,6 +234,13 @@ class MediaFeedService extends AbstractService
         return $range;
     }
 
+    /**
+     * 
+     * @param int|null $start default = 1
+     * @param int|null $numEntries default = null
+     * @param int|null $since default = null
+     * @return array
+     */
     protected function buildGetEntriesParamsArray($start = 1, $numEntries = null, $since = null)
     {
         $params = array();
