@@ -48,12 +48,7 @@ class MediaService extends AbstractService
      */
     protected function doPut($relativeEndpoint, $headers = array(), $body = '', $params = array())
     {
-        $client = $this->getClient();
-        
-        echo "<pre>" . var_dump($headers, json_decode($body, true), $params) . "</pre>";
-        die(__FILE__ . "(" . __LINE__ . ") :: " . __FUNCTION__ . " :: message");
-
-
+        $client = $this->getClient();        
         $request = $client->put($relativeEndpoint, $headers, $body, $params);
         $this->log(sprintf('Request url: %s', $request->getUrl()));
         $response = $request->send();
