@@ -49,6 +49,11 @@ class MediaService extends AbstractService
     protected function doPut($relativeEndpoint, $headers = array(), $body = '', $params = array())
     {
         $client = $this->getClient();
+        
+        echo "<pre>" . var_dump($headers, json_decode($body, true), $params) . "</pre>";
+        die(__FILE__ . "(" . __LINE__ . ") :: " . __FUNCTION__ . " :: message");
+
+
         $request = $client->put($relativeEndpoint, $headers, $body, $params);
         $this->log(sprintf('Request url: %s', $request->getUrl()));
         $response = $request->send();
@@ -78,9 +83,10 @@ class MediaService extends AbstractService
         // For Content-Type application/json, MPX will suppress httpErrors, always returning 
         // 200, by default. To re-enable HTTP errors, use ?httpError=true
         // @see http://help.theplatform.com/display/wsf2/Handling+data-service+exceptions#Handlingdata-serviceexceptions-SuppressingHTTPerrorcodes
-        $options['query']['httpError'] = 'true';
-        $options['query']['token'] = $this->token;
-        $options['query'] = array_merge($options['query'], $urlParams); 
+        $options['query'] = array_merge([
+            'httpError' => 'true',
+            'token' => $this->token,
+        ], $urlParams);
         return $this->doPut('', $headers, json_encode($body), $options);
     }
     
@@ -117,6 +123,8 @@ class MediaService extends AbstractService
     public static function getResponseErrror($response)
     {
         $body = $response->json();
-        return !empty($body['description']) ? $body['description'] : 'Unknown error';
+        $msg = !empty($body['description']) ? $body['description'] : 'Unknown error';
+        $correlationId = !empty($body['correlationId']) ? $body['correlationId'] : 'Unknown correlationId';
+        return sprintf('Message: %s. Correlation: %s', $msg, $correlationId);
     }
 }
