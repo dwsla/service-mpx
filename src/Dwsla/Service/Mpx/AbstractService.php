@@ -2,7 +2,8 @@
 
 namespace Dwsla\Service\Mpx;
 
-use Guzzle\Http\Client;
+use GuzzleHttp\Client;
+use GuzzleHttp\Stream\Stream;
 use Monolog\Logger;
 
 /**
@@ -87,10 +88,12 @@ abstract class AbstractService
     protected function doGet($relativeEndpoint, $headers = array(), $params = array())
     {
         $client = $this->getClient();
-        $request = $client->get($relativeEndpoint, $headers, $params);
+        $request = $client->createRequest('GET', $relativeEndpoint, array_merge([
+            'headers' => $headers,
+        ], $params));
         $this->log(sprintf('Request url: %s', $request->getUrl()));
-        $response = $request->send();
-        if (!$response->isSuccessful()) {
+        $response = $client->send($request);
+        if ($response->getStatusCode() != 200) {
             throw new Exception('HTTP status ' . $response->getStatusCode());
         }
         $data = $response->json();
@@ -109,9 +112,13 @@ abstract class AbstractService
     protected function doPost($relativeEndpoint, $headers = array(), $body = '', $params = array())
     {
         $client = $this->getClient();
-        $request = $client->post($relativeEndpoint, $headers, $body, $params);
+        $request = $client->createRequest('POST', $relativeEndpoint, [
+            'headers' => $headers,
+            'body' => Stream::factory($body),
+            'query' => $params,
+        ]);
         $this->log(sprintf('Request url: %s', $request->getUrl()));
-        $response = $request->send();
+        $response = $client->send($request);
         $data = $response->json();
 
         return $data;
@@ -125,12 +132,8 @@ abstract class AbstractService
     public function getClient()
     {
         if (null === $this->client) {
-            $client = new Client();
-            $client->setBaseUrl(static::$baseUrl);
-            $client->setUserAgent(sprintf('%s/%s', static::$userAgent, static::$version), true);
-            $client->setDefaultOption('query/form', $this->getFormat());
-            $client->setDefaultOption('query/schema', $this->getSchema());
-            $client->setDefaultOption('timeout', 0);
+            $options = $this->buildClientDefaultConfig();
+            $client = new Client($options);
             $this->client = $client;
         }
         return $this->client;
@@ -313,6 +316,27 @@ abstract class AbstractService
             default;
                 break;
         }
+    }
+    
+    /**
+     * Build default config for client
+     * 
+     * @return array
+     */
+    protected function buildClientDefaultConfig()
+    {
+        return [
+            'base_url' => static::$baseUrl,
+            'defaults' => [
+                'headers' => [
+                    'User-Agent' => sprintf('%s/%s', static::$userAgent, static::$version),
+                ],
+                'query' => [
+                    'form' => $this->getFormat(),
+                    'schema' => $this->getSchema(),
+                ],                    
+            ],
+        ];        
     }
     
     /**

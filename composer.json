@@ -1,6 +1,6 @@
 {
     "name" : "dwsla/service-mpx",
-    "description" : "A PHP 5.3 library for accessing MPX services from ThePlatform (mpx.theplatform.com)",
+    "description" : "A PHP 5.4 library for accessing MPX services from ThePlatform (mpx.theplatform.com)",
     "type" : "library",
     "keywords" : [
         "The Platform",
@@ -19,7 +19,7 @@
     "minimum-stability": "dev",
     
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=5.4.0",
         "monolog/monolog": "~1.2",
         "guzzlehttp/guzzle": "~5.3.0"
     },
@@ -30,7 +30,8 @@
     "autoload": {
         "psr-0": {
             "Dwsla\\Service\\Mpx": "src",
-            "DwslaTest\\Service\\Mpx": "tests/src"
+            "DwslaTest\\Unit\\Service\\Mpx": "tests/unit/src",
+            "DwslaTest\\Integration\\Service\\Mpx": "tests/integration/src"
         }
     },
     "config": {

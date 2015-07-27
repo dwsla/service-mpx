@@ -15,7 +15,8 @@
     <testsuites>
 
         <testsuite name="dwsla/service-mpx test suite">
-            <directory>./../src</directory>
+            <directory>./../unit/src</directory>
+            <directory>./../integration/src</directory>
         </testsuite>
 
     </testsuites>

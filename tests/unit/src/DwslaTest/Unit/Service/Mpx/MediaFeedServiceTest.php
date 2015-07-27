@@ -1,15 +1,16 @@
 <?php
 
-namespace DwslaTest\Service\Mpx;
+namespace DwslaTest\Unit\Service\Mpx;
 
 use Dwsla\Service\Mpx\MediaFeedService;
+use DwslaTest\Unit\Service\Mpx\AbstractServiceTest as Base;
 
 /**
  * A test of the MPX FeedService class
  *
  * @author David Weinraub <david.weinraub@dws.la>
  */
-class MediaFeedTest extends AbstractServiceTest
+class MediaFeedTest extends Base
 {
     /**
      *
@@ -18,7 +19,7 @@ class MediaFeedTest extends AbstractServiceTest
      * @param  array            $bodyData
      * @return MediaFeedService
      */
-    protected function createMockService($code, array $headers = array(), array $bodyData = array())
+    protected function createMockService($code, array $headers = [], array $bodyData = [])
     {
         $client = $this->createMockClient($code, $headers, $bodyData);
         $service = new MediaFeedService('some-user-name', 'some-feed-pid');
@@ -33,9 +34,9 @@ class MediaFeedTest extends AbstractServiceTest
     public function testGetCount()
     {
         $count = 5;
-        $service = $this->createMockService(200, array(), array(
+        $service = $this->createMockService(200, [], [
             'totalResults' => $count,
-        ));
+        ]);
         $this->assertEquals($count, $service->getCount());
     }
 
@@ -44,7 +45,7 @@ class MediaFeedTest extends AbstractServiceTest
      */
     public function testCountThrowsException()
     {
-        $service = $this->createMockService(200, array(), array(
+        $service = $this->createMockService(200, [], array(
             'wrongKey' => 5,
         ));
         $count = $service->getCount();
@@ -55,7 +56,7 @@ class MediaFeedTest extends AbstractServiceTest
      */
     public function testGetEntries()
     {
-        $service = $this->createMockService(200, array(), array(
+        $service = $this->createMockService(200, [], array(
             'entries' => array(
                 array(
                     'key-1-1' => 'value-1-1',
@@ -92,7 +93,7 @@ class MediaFeedTest extends AbstractServiceTest
      */
     public function testGetEntriesThrowsExceptionOnMissingEntriesKey()
     {
-        $service = $this->createMockService(200, array(), array(
+        $service = $this->createMockService(200, [], array(
             'uselessKey' => array(
                 'k1' => 'v1',
                 'k2' => 'v2',

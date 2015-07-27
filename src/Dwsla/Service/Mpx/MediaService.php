@@ -2,7 +2,8 @@
 
 namespace Dwsla\Service\Mpx;
 
-use Guzzle\Http\Message\Response;
+use GuzzleHttp\Message\Response;
+use GuzzleHttp\Stream\Stream;
 
 /**
  * A service for the MPX Media API
@@ -48,10 +49,15 @@ class MediaService extends AbstractService
      */
     protected function doPut($relativeEndpoint, $headers = array(), $body = '', $params = array())
     {
-        $client = $this->getClient();        
-        $request = $client->put($relativeEndpoint, $headers, $body, $params);
+        $client = $this->getClient();
+//        $request = $client->put($relativeEndpoint, $headers, $body, $params);
+        $request = $client->createRequest('PUT', $relativeEndpoint, [
+            'headers' => $headers,
+            'query' => $params,
+        ]);
+        $request->setBody(Stream::factory($body));
         $this->log(sprintf('Request url: %s', $request->getUrl()));
-        $response = $request->send();
+        $response = $client->send($request);
         return $response;
     }
         

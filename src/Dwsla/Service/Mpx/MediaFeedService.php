@@ -51,13 +51,13 @@ class MediaFeedService extends AbstractService
      * @return int              the number of entries in the feed
      * @throws ServiceException
      */
-    public function getCount($addlQueryParams = array())
+    public function getCount($addlQueryParams = [])
     {
         $queryParams = array_merge(array(
             'count' => 'true',
             'entries' => 'false',
         ), $addlQueryParams);
-        $data = $this->doGet('', array(), array(
+        $data = $this->doGet('', [], array(
             'query' => $queryParams,
         ));
         if (!isset($data['totalResults'])) {
@@ -86,7 +86,7 @@ class MediaFeedService extends AbstractService
      * @param  int   $numEntries
      * @return array the 'entries' portion of the return payload
      */
-    public function getEntries($start = 1, $numEntries = null, array $fields = array(), $since = null)
+    public function getEntries($start = 1, $numEntries = null, array $fields = [], $since = null)
     {
         
         $params = $this->buildGetEntriesParamsArray($start, $numEntries, $since);
@@ -95,7 +95,7 @@ class MediaFeedService extends AbstractService
         if (count($fields) > 0) {
             $params['query']['fields'] = implode(',', $fields);
         }
-        $data = $this->doGet('', array(), $params);
+        $data = $this->doGet('', [], $params);
         if (!isset($data['entries'])) {
             throw new \RuntimeException('No entries. Context = ' . json_encode(array(
                 'service'       => 'MediaFeed',
@@ -122,7 +122,7 @@ class MediaFeedService extends AbstractService
     {
         
         $params['query'] = $options;
-        $data = $this->doGet('', array(), $params);
+        $data = $this->doGet('', [], $params);
         if (!isset($data['entries'])) {
             throw new \RuntimeException('No entries. Context = ' . json_encode(array(
                 'service'       => 'MediaFeed',
@@ -155,42 +155,40 @@ class MediaFeedService extends AbstractService
         }
         $data = $this->doGet('', [], $params);
         if (!isset($data['entries'])) {
-            throw new \RuntimeException('No entries. Context = ' . json_encode(array(
+            throw new \RuntimeException('No entries. Context = ' . json_encode([
                 'service'       => 'MediaFeed',
                 'acctId'        => $this->accountPid,
                 'feedPid'       => $this->feedPid,
                 'data'          => $data,
                 'params'        => $params,
                 'fields'        => $fields,
-            )));
+            ]));
         }
         return !empty($data['entries'][0]) ? $data['entries'][0] : null;
     }
 
     /**
-     * Get the client
-     *
-     * @return Guzzle\Http\Client
+     * Build default config for client
+     * 
+     * This overrides the default base-url by adding the instance-specific
+     * acctPid and feedPid
+     * 
+     * @return array
      */
-    public function getClient()
+    protected function buildClientDefaultConfig()
     {
-        if (null == $this->client) {
-            $client = parent::getClient();
-
-            $baseUrl = implode('/', array(
-                rtrim(static::$baseUrl, '/'),
-                $this->accountPid,
-                $this->feedPid,
-            ));
-            $this->log('Setting base url: ' . $baseUrl);
-            $client->setBaseUrl($baseUrl);
-            $this->client = $client;
-        }
-
-        return $this->client;
+        $options = parent::buildClientDefaultConfig();
+        
+        $options['base_url'] = implode('/', [
+            rtrim(static::$baseUrl, '/'),
+            $this->accountPid,
+            $this->feedPid,
+        ]);
+        
+        return $options;
     }
 
-    public function buildUrlGetEntries($start = 1, $numEntries = null, array $fields = array(), $since = null)
+    public function buildUrlGetEntries($start = 1, $numEntries = null, array $fields = [], $since = null)
     {
         $params = $this->buildGetEntriesParamsArray($start, $numEntries, $since);
         if (count($fields) > 0) {
@@ -243,7 +241,7 @@ class MediaFeedService extends AbstractService
      */
     protected function buildGetEntriesParamsArray($start = 1, $numEntries = null, $since = null)
     {
-        $params = array();
+        $params = [];
         $range = self::buildRangeParam($start, $numEntries);
         if ($range) {
             $params['query']['range'] = $range;
@@ -274,13 +272,13 @@ class MediaFeedService extends AbstractService
      * @param arry $params
      * @return string
      */
-    public static function buildFeedUrl($acctPid, $feedPid, $params = array())
+    public static function buildFeedUrl($acctPid, $feedPid, $params = [])
     {
-        return implode('/', array(
+        return implode('/', [
             rtrim(static::$baseUrl, '/'),
             $acctPid,
             $feedPid,
-        )) . '?' . http_build_query($params);
+        ]) . '?' . http_build_query($params);
     }
     
     /**
@@ -301,7 +299,7 @@ class MediaFeedService extends AbstractService
      */
     public static function buildCustomValue($params, $prefix = '')
     {
-        $out = array();
+        $out = [];
         foreach ($params as $field => $value) {
             $newField = sprintf($field, $prefix);
             $out[] = sprintf('{%s}{%s}', $newField, $value);
