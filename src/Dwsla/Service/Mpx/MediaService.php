@@ -50,10 +50,9 @@ class MediaService extends AbstractService
     protected function doPut($relativeEndpoint, $headers = array(), $body = '', $params = array())
     {
         $client = $this->getClient();
-//        $request = $client->put($relativeEndpoint, $headers, $body, $params);
         $request = $client->createRequest('PUT', $relativeEndpoint, [
             'headers' => $headers,
-            'query' => $params,
+            'query' => $params['query'],
         ]);
         $request->setBody(Stream::factory($body));
         $this->log(sprintf('Request url: %s', $request->getUrl()));
