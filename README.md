@@ -62,5 +62,15 @@ To run the unit-tests:
 $ git clone git@github.com:dwsla/service-mpx
 $ cd ./service-mpx
 $ composer install --dev
-$ ./bin/phpunit -c ./tests/config/phpunit.xml
+$ ./bin/phpunit -c ./tests/config/phpunit.xml ./tests/unit
+```
+
+To run the integration tests copy the file `./tests/config/mpx/local.php.dist` to
+`./tests/config/mpx/local.php`. The populate some values for user and pass (for 
+the `AuthenticationServiceTest`) and feed urls (for the `MediaFeedServiceTest`).
+
+Then run:
+
+```
+$ ./bin/phpunit -c ./tests/config/phpunit.xml ./tests/integration
 ```

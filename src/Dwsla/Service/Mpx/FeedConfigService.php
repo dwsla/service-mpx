@@ -44,9 +44,9 @@ class FeedConfigService extends AbstractService
      * @param  type $options
      * @return type
      */
-    public function getEntries($account, $options = array())
+    public function getEntries($account, $options = [])
     {
-        $params = array();
+        $params = [];
 
         // add token
         $params['query']['token'] = $this->token;
@@ -72,7 +72,7 @@ class FeedConfigService extends AbstractService
         }
 
         // make the call
-        $entries = $this->doGet('FeedConfig', array(), $params);
+        $entries = $this->doGet('FeedConfig', [], $params);
         if (!isset($entries['entries'])) {
             throw new \RuntimeException('No "entries" key in FeedConfig results');
         }

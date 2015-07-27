@@ -1,0 +1,17 @@
+<?php
+
+return [
+    
+    // MPX params for tests requiring authentication
+    'user' => 'my-user',
+    'pass' => 'my-pass',
+    
+    // MPX feed params for tests requiring a real feed.
+    // 
+    // Typical feed url is of the form:
+    // 
+    //     http://feed.theplatform/com/f/some-acct-pid/some-feed-pid
+    //
+    'acctPid' => 'some-acct-pid',
+    'feedPid' => 'some-feed-pid',
+];

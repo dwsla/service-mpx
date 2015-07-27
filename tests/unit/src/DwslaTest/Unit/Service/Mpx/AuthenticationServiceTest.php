@@ -1,19 +1,20 @@
 <?php
 
-namespace DwslaTest\Service\Mpx;
+namespace DwslaTest\Unit\Service\Mpx;
 
 use Dwsla\Service\Mpx\AuthenticationService;
-
-use Guzzle\Http\Client;
-use Guzzle\Http\Message\Response;
-use Guzzle\Plugin\Mock\MockPlugin;
+use DwslaTest\Unit\Service\Mpx\AbstractServiceTest as Base;
+use GuzzleHttp\Client;
+use GuzzleHttp\Message\Response;
+use GuzzleHttp\Stream\Stream;
+use GuzzleHttp\Subscriber\Mock;
 
 /**
  * A test of the MPX Authentication class
  *
  * @author David Weinraub <david.weinraub@dws.la>
  */
-class AuthenticationTest extends AbstractServiceTest
+class AuthenticationTest extends Base
 {
     /**
      *
@@ -22,22 +23,23 @@ class AuthenticationTest extends AbstractServiceTest
      * @param  array            $bodyData
      * @return MediaFeedService
      */
-    protected function createMockService($code, array $headers = array(), array $bodyData = array(), $token = null)
+    protected function createMockService($code, array $headers = [], array $bodyData = [], $token = null)
     {
-        $plugin = new MockPlugin();
-
         // signIn response
-        $response = new Response(200, $headers, json_encode($bodyData));
-        $plugin->addResponse($response);
+        $signInResponse = new Response($code, $headers, Stream::factory(json_encode($bodyData)));
 
         // signOut response, auto on __destruct, so need to mock this, too.
-        $response = new Response(200, array(), json_encode(array(
+        $signOutResponse = new Response(200, [], Stream::factory(json_encode([
             'token' => $token,
-        )));
-        $plugin->addResponse($response);
+        ])));
+        
+        $mock = new Mock([
+            $signInResponse,
+            $signOutResponse,
+        ]);
 
         $client = new Client();
-        $client->addSubscriber($plugin);
+        $client->getEmitter()->attach($mock);
 
         $service = new AuthenticationService();
         $service->setClient($client);
@@ -52,11 +54,11 @@ class AuthenticationTest extends AbstractServiceTest
     {
         $token = 'my-token';
 
-        $service = $this->createMockService(200, array(), array(
-            'signInResponse' => array(
+        $service = $this->createMockService(200, [], [
+            'signInResponse' => [
                 'token' => $token,
-            ),
-        ), $token);
+            ],
+        ], $token);
 
         $this->assertTrue($service->signIn('valid-user', 'valid-pass'));
         $this->assertEquals($token, $service->getToken());
@@ -69,9 +71,9 @@ class AuthenticationTest extends AbstractServiceTest
     {
         $token = 'my-token';
 
-        $service = $this->createMockService(401, array(), array(
-            'missingSignInResponse' => array(
-        )), $token);
+        $service = $this->createMockService(200, [], [
+            'missingSignInResponse' => [
+        ]], $token);
 
         $this->assertFalse($service->signIn('invalid-user', 'invalid-pass'));
     }

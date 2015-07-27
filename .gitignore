@@ -7,3 +7,5 @@
 # Ignore all composer-managed dependencies
 /vendor
 
+# Ignore local mpx test config
+/tests/config/mpx/local.php

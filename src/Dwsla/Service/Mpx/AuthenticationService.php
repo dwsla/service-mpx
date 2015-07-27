@@ -42,14 +42,12 @@ class AuthenticationService extends AbstractService
      */
     public function signIn($user, $pass)
     {
-        $client = $this->getClient();
+        $params = [];
+        $params['auth'] = [$user, $pass, 'Basic'];
 
-        $params = array();
-        $params['auth'] = array($user, $pass, 'Basic');
-
-        $data = $this->doGet('signIn', array(), $params);
-
-        if (!isset($data['signInResponse']['token']) || empty($data['signInResponse']['token'])) {
+        $data = $this->doGet('signIn', [], $params);
+        
+        if (empty($data['signInResponse']['token'])) {
             return false;
         }
 
@@ -71,17 +69,14 @@ class AuthenticationService extends AbstractService
             return true;
         }
 
-        $client = $this->getClient();
-
-        $body = array(
-            'signOut' => array(
+        $body = [
+            'signOut' => [
                 'token' => $token,
-            ),
-        );
+            ],
+        ];
         try {
-            $data = $this->doPost('signOut', array(), json_encode($body));
+            $data = $this->doPost('signOut', [], json_encode($body));
             $this->token = null;
-
             return true;
         } catch (\Exception $e) {
             return false;
