@@ -28,7 +28,7 @@ abstract class AbstractService
      * 
      * @var string
      */
-    protected static $version = '3.0';
+    protected static $version = '4.0.0';
     
     /**
      * A log object
