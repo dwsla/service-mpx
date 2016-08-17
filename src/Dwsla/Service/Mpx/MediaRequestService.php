@@ -31,6 +31,11 @@ class MediaRequestService extends AbstractService
     protected static $defaultLimit = 2000;
 
     /**
+     * @var string
+     */
+    protected $token;
+
+    /**
      * Auth token from MPX
      * 
      * @param string $token
@@ -39,31 +44,37 @@ class MediaRequestService extends AbstractService
     {
         $this->token = $token;
     }
+
     /**
      * Get response entries for a request
-     * 
+     *
      * @param  array $options
      * @return array
+     * @throws Exception
      */
-    public function getEntries($options = array())
+    public function getEntries($options = [])
     {
-        $params = array();
+        $params = [];
 
         if (empty($options['account'])) {
             throw new Exception('Account is required');
         }
-        
+
         $params['query']['token'] = $this->token;
         
         if (!isset($options['range'])) {
             $options['range'] = '1-' . static::$defaultLimit;
         }
-        
+
+        // Add the form and schema. Ugh...
+        $params['query']['form'] = static::$defaultFormat;
+        $params['query']['schema'] = static::$defaultSchema;
+
         // Add all the $options to the query
         $params['query'] = array_merge($params['query'], $options);
 
         // make the call
-        $result = $this->doGet('', array(), $params);
+        $result = $this->doGet('', [], $params);
         
         if (!isset($result['entries'])) {
             
@@ -89,11 +100,12 @@ class MediaRequestService extends AbstractService
             'requestCount' => $entry['plrequest$requestCount'],
         ];
     }
-    
+
     /**
      * Strip out the url prefix to get the integer mpxId
-     * 
-     * @param type $mediaId
+     *
+     * @param string $mediaId
+     * @return mixed
      */
     protected static function massageMediaId($mediaId)
     {

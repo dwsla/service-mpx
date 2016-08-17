@@ -3,8 +3,10 @@
 namespace Dwsla\Service\Mpx;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Stream\Stream;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
 use Monolog\Logger;
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Abstract base service for MPX services
@@ -26,7 +28,7 @@ abstract class AbstractService
      * 
      * @var string
      */
-    protected static $version = '2.1.0';
+    protected static $version = '3.0';
     
     /**
      * A log object
@@ -81,22 +83,19 @@ abstract class AbstractService
      * Make an HTTP GET request
      *
      * @param  string $relativeEndpoint
-     * @param  array  $headers
-     * @param  array  $params
+     * @param  array $headers
+     * @param  array $params
      * @return array
+     * @throws Exception
      */
-    protected function doGet($relativeEndpoint, $headers = array(), $params = array())
+    protected function doGet($relativeEndpoint, $headers = [], $params = [])
     {
-        $client = $this->getClient();
-        $request = $client->createRequest('GET', $relativeEndpoint, array_merge([
-            'headers' => $headers,
-        ], $params));
-        $this->log(sprintf('Request url: %s', $request->getUrl()));
-        $response = $client->send($request);
+        $params['headers'] = $headers;
+        $response = $this->getClient()->get($relativeEndpoint, $params);
         if ($response->getStatusCode() != 200) {
             throw new Exception('HTTP status ' . $response->getStatusCode());
         }
-        $data = $response->json();
+        $data = json_decode($response->getBody()->getContents(), true);
 
         return $data;
     }
@@ -105,21 +104,22 @@ abstract class AbstractService
      * Make an HTTP POST request
      *
      * @param  string $relativeEndpoint
-     * @param  array  $headers
-     * @param  array  $params
+     * @param  array $headers
+     * @param string $body
+     * @param  array $params
      * @return array
      */
-    protected function doPost($relativeEndpoint, $headers = array(), $body = '', $params = array())
+    protected function doPost($relativeEndpoint, $headers = [], $body = '', $params = [])
     {
-        $client = $this->getClient();
-        $request = $client->createRequest('POST', $relativeEndpoint, [
+        $response = $this->getClient()->post($relativeEndpoint, [
             'headers' => $headers,
-            'body' => Stream::factory($body),
-            'query' => $params,
+            'body' => $body,
+            'query' => array_merge([
+                'form' => static::$defaultFormat,
+                'schema' => static::$defaultSchema,
+            ], $params),
         ]);
-        $this->log(sprintf('Request url: %s', $request->getUrl()));
-        $response = $client->send($request);
-        $data = $response->json();
+        $data = json_decode($response->getBody()->getContents(), true);
 
         return $data;
     }
@@ -142,8 +142,8 @@ abstract class AbstractService
     /**
      * Set client for this service
      *
-     * @param  \Guzzle\Http\Client $client
-     * @return type
+     * @param  Client $client
+     * @return $this
      */
     public function setClient(Client $client)
     {
@@ -212,7 +212,7 @@ abstract class AbstractService
      * Set schema version for API requests
      *
      * @param  string $schema
-     * @return type
+     * @return $this
      */
     public function setSchema($schema)
     {
@@ -239,19 +239,13 @@ abstract class AbstractService
      * Set format for API requests
      *
      * @param  string $format json, xml, etc.
-     * @return type
+     * @return $this
      */
     public function setFormat($format)
     {
         $this->format = $format;
 
         return $this;
-    }
-
-    public function buildRequestUrl($relativeEndpoint, array $params = array())
-    {
-        // assume GET
-        return $this->getClient()->get($relativeEndpoint, array(), $params)->getUrl();
     }
 
     /**
@@ -266,6 +260,8 @@ abstract class AbstractService
 
     /**
      * Set the logger
+     * @param Logger $logger
+     * @return $this
      */
     public function setLogger(Logger $logger)
     {
@@ -277,11 +273,12 @@ abstract class AbstractService
     /**
      * Log a message
      *
-     * @param  string $message
-     * @param  int    $level
+     * @param string $message
+     * @param int    $level
+     * @param array $context
      * @return void
      */
-    public function log($message, $level = Logger::INFO, array $context = array())
+    public function log($message, $level = Logger::INFO, array $context = [])
     {
         if (!$this->logger) {
             return;
@@ -326,17 +323,51 @@ abstract class AbstractService
     protected function buildClientDefaultConfig()
     {
         return [
-            'base_url' => static::$baseUrl,
-            'defaults' => [
-                'headers' => [
-                    'User-Agent' => sprintf('%s/%s', static::$userAgent, static::$version),
-                ],
-                'query' => [
-                    'form' => $this->getFormat(),
-                    'schema' => $this->getSchema(),
-                ],                    
+            'base_uri' => static::$baseUrl,
+            'headers' => [
+                'User-Agent' => sprintf('%s/%s', static::$userAgent, static::$version),
             ],
-        ];        
+
+            // Seems to be ignored. WTH? But we use it as a hack when we build urls to display
+            'query' => [
+                'form' => $this->getFormat(),
+                'schema' => $this->getSchema(),
+            ],
+
+            // stack with middleware handlers
+            'handler' => $this->buildGuzzleStack(),
+        ];
+    }
+
+    /**
+     * @return HandlerStack
+     */
+    protected function buildGuzzleStack()
+    {
+        // New stack
+        $stack = new HandlerStack();
+
+        // Set handler for the stack, let Guzzle choose
+        $stack->setHandler(\GuzzleHttp\choose_handler());
+
+        // Add Request middleware to the stack that logs the url
+        $stack->push(Middleware::mapRequest($this->buildMiddlewareLogRequestUrl()));
+
+        // Return
+        return $stack;
+    }
+
+    /**
+     * @return \Closure
+     */
+    protected function buildMiddlewareLogRequestUrl()
+    {
+        $me = $this;
+        return function(RequestInterface $request) use ($me) {
+            $url = (string) $request->getUri();
+            $me->log('Request url = ' . $url);
+            return $request;
+        };
     }
     
     /**

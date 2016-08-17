@@ -3,9 +3,10 @@
 namespace DwslaTest\Unit\Service\Mpx;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Message\Response;
-use GuzzleHttp\Stream\Stream;
-use GuzzleHttp\Subscriber\Mock;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Request;
 
 /**
  * An abstract base for MPX Service classes
@@ -25,12 +26,13 @@ abstract class AbstractServiceTest extends \PHPUnit_Framework_TestCase
      */
     protected function createMockClient($code, array $headers = array(), array $bodyData = array())
     {
-        $mock = new Mock([
-            new Response($code, $headers, Stream::factory(json_encode($bodyData))),
+        // Create a mock and queue a response.
+        $mock = new MockHandler([
+            new Response($code, $headers, \GuzzleHttp\json_encode($bodyData)),
         ]);
 
-        $client = new Client();
-        $client->getEmitter()->attach($mock);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
 
         return $client;
     }

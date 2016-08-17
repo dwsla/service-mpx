@@ -38,7 +38,7 @@ class MediaFeedServiceTest extends \PHPUnit_Framework_TestCase
             return;
         }
         $this->assertGreaterThan(0, static::$service->getCount());
-    }    
+    }
     
     public function testGetCountSince()
     {

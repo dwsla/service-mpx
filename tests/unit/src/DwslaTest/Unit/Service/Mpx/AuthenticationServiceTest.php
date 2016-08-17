@@ -5,9 +5,10 @@ namespace DwslaTest\Unit\Service\Mpx;
 use Dwsla\Service\Mpx\AuthenticationService;
 use DwslaTest\Unit\Service\Mpx\AbstractServiceTest as Base;
 use GuzzleHttp\Client;
-use GuzzleHttp\Message\Response;
-use GuzzleHttp\Stream\Stream;
-use GuzzleHttp\Subscriber\Mock;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Request;
 
 /**
  * A test of the MPX Authentication class
@@ -21,25 +22,28 @@ class AuthenticationTest extends Base
      * @param  int              $code
      * @param  array            $headers
      * @param  array            $bodyData
-     * @return MediaFeedService
+     * @return AuthenticationService
      */
     protected function createMockService($code, array $headers = [], array $bodyData = [], $token = null)
     {
-        // signIn response
-        $signInResponse = new Response($code, $headers, Stream::factory(json_encode($bodyData)));
 
-        // signOut response, auto on __destruct, so need to mock this, too.
-        $signOutResponse = new Response(200, [], Stream::factory(json_encode([
-            'token' => $token,
-        ])));
-        
-        $mock = new Mock([
-            $signInResponse,
-            $signOutResponse,
+        // Create a mock and queue a response.
+        $mock = new MockHandler([
+            new Response($code, $headers, \GuzzleHttp\json_encode($bodyData)),
+            new Response(200, [], \GuzzleHttp\json_encode([
+                'token' => $token,
+            ])),
         ]);
 
-        $client = new Client();
-        $client->getEmitter()->attach($mock);
+        $handler = HandlerStack::create($mock);
+        $client = new Client([
+
+            // appears to be needed
+            'base_uri' => 'http://example.com',
+
+
+            'handler' => $handler,
+        ]);
 
         $service = new AuthenticationService();
         $service->setClient($client);

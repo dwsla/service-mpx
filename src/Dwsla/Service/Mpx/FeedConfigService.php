@@ -41,8 +41,9 @@ class FeedConfigService extends AbstractService
 
     /**
      *
-     * @param  type $options
-     * @return type
+     * @param $account
+     * @param array $options
+     * @return array
      */
     public function getEntries($account, $options = [])
     {

@@ -38,15 +38,15 @@ class AuthenticationService extends AbstractService
 
     /**
      * Sign-in, set the auth token
-     *
+     * @param $user
+     * @param $pass
+     * @return bool
      */
     public function signIn($user, $pass)
     {
         $params = [];
-        $params['auth'] = [$user, $pass, 'Basic'];
-
+        $params['auth'] = [$user, $pass];
         $data = $this->doGet('signIn', [], $params);
-        
         if (empty($data['signInResponse']['token'])) {
             return false;
         }
@@ -58,6 +58,8 @@ class AuthenticationService extends AbstractService
 
     /**
      * Logout from the API
+     * @param null $token
+     * @return bool
      */
     public function signOut($token = null)
     {
@@ -75,7 +77,7 @@ class AuthenticationService extends AbstractService
             ],
         ];
         try {
-            $data = $this->doPost('signOut', [], json_encode($body));
+            $this->doPost('signOut', [], json_encode($body));
             $this->token = null;
             return true;
         } catch (\Exception $e) {
