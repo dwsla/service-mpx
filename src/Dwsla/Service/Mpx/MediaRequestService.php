@@ -67,8 +67,8 @@ class MediaRequestService extends AbstractService
         }
 
         // Add the form and schema. Ugh...
-        $params['query']['form'] = static::$defaultFormat;
-        $params['query']['schema'] = static::$defaultSchema;
+        $params['query']['form'] = $this->getFormat();
+        $params['query']['schema'] = $this->getSchema();
 
         // Add all the $options to the query
         $params['query'] = array_merge($params['query'], $options);

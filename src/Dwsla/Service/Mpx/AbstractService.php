@@ -115,8 +115,8 @@ abstract class AbstractService
             'headers' => $headers,
             'body' => $body,
             'query' => array_merge([
-                'form' => static::$defaultFormat,
-                'schema' => static::$defaultSchema,
+                'form' => $this->getFormat(),
+                'schema' => $this->getSchema(),
             ], $params),
         ]);
         $data = json_decode($response->getBody()->getContents(), true);

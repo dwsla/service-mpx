@@ -57,8 +57,8 @@ class MediaService extends AbstractService
         $response = $this->getClient()->put($relativeEndpoint, [
             'headers' => $headers,
             'query' => array_merge([
-                'form' => static::$defaultFormat,
-                'schema' => static::$defaultSchema,
+                'form' => $this->getFormat(),
+                'schema' => $this->getSchema(),
             ], $params['query']),
             'body' => $body,
         ]);

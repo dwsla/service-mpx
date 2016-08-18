@@ -54,8 +54,8 @@ class MediaFeedService extends AbstractService
     public function getCount($addlQueryParams = [])
     {
         $queryParams = array_merge([
-            'form' => static::$defaultFormat,
-            'schema' => static::$defaultSchema,
+            'form' => $this->getFormat(),
+            'schema' => $this->getSchema(),
             'count' => 'true',
             'entries' => 'false',
         ], $addlQueryParams);
@@ -126,8 +126,8 @@ class MediaFeedService extends AbstractService
     {
         
         $params['query'] = array_merge([
-            'form' => static::$defaultFormat,
-            'schema' => static::$defaultSchema,
+            'form' => $this->getFormat(),
+            'schema' => $this->getSchema(),
         ], $options);
         
         $data = $this->doGet('', [], $params);
@@ -158,8 +158,8 @@ class MediaFeedService extends AbstractService
     {
         $params = [];
         $params['query']['byId'] = $id;
-        $params['query']['form'] = self::$defaultFormat;
-        $params['query']['schema'] = self::$defaultSchema;
+        $params['query']['form'] = $this->getSchema();
+        $params['query']['schema'] = $this->getFormat();
 
         if ($fields) {
             $params['query']['fields'] = $fields;
