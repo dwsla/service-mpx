@@ -14,7 +14,7 @@ class MediaFeedService extends AbstractService
     /**
      * @var string
      */
-    protected static $baseUrl = 'http://feed.theplatform.com/f/';
+    protected static $baseUrl = 'https://feed.theplatform.com/f/';
 
     /**
      * Schema for API requests (instance)
